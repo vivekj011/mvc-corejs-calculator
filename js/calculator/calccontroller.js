@@ -32,68 +32,54 @@ CalcController.prototype.addEvents = function(options) {
 };
 
 CalcController.prototype.buttonClicked = function(options) {
+	var model = this.model;
 	if('operand' === options.type){
-		if(this.model.attributes.firstOperand && this.model.attributes.operator){
-			this.model.attributes.secondOperand = new Number((this.model.attributes.secondOperand ? (this.model.attributes.secondOperand+options.actualValue) : options.actualValue));
-			this.displayController.setData(this.model.attributes.secondOperand);
+		if(model.isRightOperandDefined() || model.isOperatorDefined()){
+			model.concatenateToRightOperand(options.actualValue);
+			var dataToDisplay = model.getLeftOperand() + ' ' + model.getOperator() + ' ' + model.getRightOperand();
+			this.setData(dataToDisplay);
 		}else{
-			this.model.attributes.firstOperand = new Number((this.model.attributes.firstOperand ? (this.model.attributes.firstOperand+''+options.actualValue) : options.actualValue));
-			this.displayController.setData(this.model.attributes.firstOperand);
+			model.concatenateToLeftOperand(options.actualValue);
+			this.setData(model.getLeftOperand());
 		}
 	}else if('operator' === options.type){
-		if(this.model.attributes.firstOperand && this.model.attributes.operator && this.model.attributes.secondOperand){
-			var result = this.calculate(this.model.attributes.firstOperand, this.model.attributes.operator,this.model.attributes.secondOperand);
-			this.displayController.setData(result);
-		}else if(this.model.attributes.result){
-			this.model.attributes.firstOperand = new Number(result);
-			this.model.attributes.operator = options.actualValue;
-		}else{
-			this.model.attributes.operator = options.actualValue;
+		if('calculate' === options.actualValue && (model.isLeftOperandDefined() && model.isOperatorDefined() && model.isRightOperandDefined())){
+			var result = model.calculate();
+			this.setData(result);
+			model.resetOperandsAndOperator();
+			model.setLeftOperand(result);
 		}
 
-		if('calculate' === options.actualValue){
-			var result = this.calculate(this.model.attributes.firstOperand, this.model.attributes.operator,this.model.attributes.secondOperand);
-			this.displayController.setData(result);
-
-			this.model.attributes.firstOperand = undefined;
-			this.model.attributes.secondOperand = undefined;
-			this.model.attributes.operator= undefined;
-			this.model.attributes.result = result;
+		if(model.isLeftOperandDefined() && model.isOperatorDefined() && model.isRightOperandDefined()){
+			var result = model.calculate();
+			this.setData(result);
+			model.resetOperandsAndOperator();
+			model.setLeftOperand(result);
+			model.setOperator(options.actualValue);	
+		}else if(model.isLeftOperandDefined()){
+			model.setOperator(options.actualValue);
+			var dataToDisplay = model.getLeftOperand() + ' ' + model.getOperator(); 	
+			this.setData(dataToDisplay);
 		}
-		
 	}else if('clear' === options.type){
 		this.clearData(options);
 	}else if('decimal' === options.type){
-		if(this.model.attributes.secondOperand){
-			this.model.attributes.secondOperand += "" + options.actualValue;
-			this.displayController.setData(this.model.attributes.secondOperand);
+		if(model.isRightOperandDefined()){
+			model.setDecimalToRightOperand();			
+			this.setData(model.getRightOperand());
 		}else{
-			this.model.attributes.firstOperand += "" + options.actualValue;
-			this.displayController.setData(this.model.attributes.firstOperand);
+			model.setDecimalToLeftOperand();						
+			this.setData(model.getLeftOperand());
 		}
 	}
 };
 CalcController.prototype.clearData = function(options) {
-	var modelAttributes = this.model.attributes;
-	modelAttributes.firstOperand = undefined;
-	modelAttributes.operator = undefined;
-	modelAttributes.secondOperand = undefined;
-	modelAttributes.total = undefined;
-
+	this.model.resetOperandsAndOperator();
 	this.displayController.clearData();
 };
 
-CalcController.prototype.calculate = function(firstOperand,operator,secondOperand) {
-	if(operator === "+"){
-		debugger;
-		return firstOperand + secondOperand;
-	}else if(operator === "-"){
-		return firstOperand - secondOperand;
-	}else if(operator === "/"){
-		return firstOperand / secondOperand;
-	}else if(operator === "X"){
-		return firstOperand * secondOperand;
-	}
+CalcController.prototype.setData = function(dataToSet) {
+	this.displayController.setData(dataToSet);
 };
 
 package.CALC.calculator.controller = CalcController;
