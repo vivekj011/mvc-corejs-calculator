@@ -23,7 +23,6 @@ ButtonGroupController.prototype = new package.CALC.parentClass();
 ButtonGroupController.prototype.constructor = ButtonGroupController;
 
 ButtonGroupController.prototype.buttonClicked = function(options) {
-	debugger;
 	var buttonData = this.collection.get(options);
 	this.fireEvent("buttonClicked",buttonData.attributes);
 };
